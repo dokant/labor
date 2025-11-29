@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>양평 논→대지 변경 업무 관리 시스템</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        // Icons
+        const ChevronDown = (props) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="m6 9 6 6 6-6"/></svg>
+        );
+        const ChevronUp = (props) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="m18 15-6-6-6 6"/></svg>
+        );
+        const CheckCircle = (props) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+        );
+        const Circle = (props) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="12" cy="12" r="10"/></svg>
+        );
+        const Clock = (props) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        );
+        const FileText = (props) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>
+        );
+        const AlertCircle = (props) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+        );
+
+        const LandConversionTracker = () => {
+          const [expandedStep, setExpandedStep] = useState(null);
+          const [completedSteps, setCompletedSteps] = useState(new Set());
+          const [notes, setNotes] = useState({});
+
+          const steps = [
+            {
+              id: 0,
+              title: "계약 & 착수금",
+              duration: "당일~3일",
+              summary: "방문 1번 또는 카톡·전화 계약 → 인감증명서·주민등록초본만 보내줌",
+              documents: ["대행계약서", "성공보수조항"],
+              details: [
+                "고객과 초기 상담 (방문/전화/카톡)",
+                "업무 범위 및 비용 안내",
+                "필요서류: 인감증명서, 주민등록초본",
+                "대행계약서 작성 및 서명",
+                "착수금 수령 (보통 총액의 30-50%)",
+                "성공보수 조항 명확히 설명"
+              ],
+              checkpoints: [
+                "인감증명서 수령 완료",
+                "주민등록초본 수령 완료",
+                "계약서 서명 완료",
+                "착수금 입금 확인"
+              ]
+            },
+            {
+              id: 1,
+              title: "사전 조사 & 전략 수립",
+              duration: "3~7일",
+              summary: "토지대장·지적도·건축물대장·농지원부 열람 및 규제 확인",
+              documents: ["토지대장", "지적도", "건축물대장", "농지원부", "토지이용계획확인서"],
+              details: [
+                "양평군청 민원지적과 방문 - 토지대장·지적도 열람",
+                "농정과 방문 - 농지원부 존재 여부 확인 (중요!)",
+                "도시건축과 - 건축물대장 및 용도지역 확인",
+                "토지이용계획확인서 발급으로 각종 규제 파악",
+                "인접 도로 현황 및 배수로 위치 확인",
+                "환경규제(상수원보호구역 등) 저촉 여부 확인",
+                "현장 방문하여 사진 촬영 및 실측",
+                "농지원부 없을 경우 대체서류 준비 방안 수립",
+                "전략 보고서 작성 (예상 기간, 비용, 리스크)"
+              ],
+              checkpoints: [
+                "토지대장 열람 완료",
+                "농지원부 확인 완료",
+                "규제 저촉 여부 확인",
+                "현장 사진 촬영 완료",
+                "전략 수립 완료"
+              ]
+            },
+            {
+              id: 2,
+              title: "농지전용허가 신청",
+              duration: "15~25일",
+              summary: "370㎡ 소규모라 양평군청에서 직접 처리",
+              documents: ["농지전용허가신청서", "사업계획서", "위치도", "현장사진", "농지원부 또는 대체서류"],
+              details: [
+                "농지전용허가신청서 작성 (370㎡는 군청 권한)",
+                "사업계획서 작성 - 전용 목적, 필요성 기술",
+                "위치도 작성 - 인접 토지 관계 표시",
+                "현장 사진 첨부 (4방향 촬영)",
+                "농지원부 있으면 농업경영체 증명으로 농취증 생략",
+                "농지원부 없으면 대체입증서류 준비",
+                "양평군청 농정과 제출 (1,000㎡ 이하 담당)",
+                "담당 공무원과 사전 협의 (보완 최소화)",
+                "접수증 수령 및 진행상황 주기적 확인",
+                "보완 요청 시 즉시 대응"
+              ],
+              checkpoints: [
+                "신청서 작성 완료",
+                "사업계획서 완성",
+                "현장사진 준비",
+                "군청 접수 완료",
+                "보완사항 처리 완료"
+              ]
+            },
+            {
+              id: 3,
+              title: "개발행위허가 동시 신청",
+              duration: "20~35일",
+              summary: "농지전용허가와 함께 제출하여 기간 단축",
+              documents: ["개발행위허가신청서", "배치도", "단면도", "배수계획서", "토공계획서"],
+              details: [
+                "개발행위허가신청서 작성",
+                "배치도 작성 - 대지 조성 범위 명시",
+                "단면도 작성 - 성토 높이 1~1.5m로 설계 (2m 넘으면 심의)",
+                "배수계획서 - 우수 처리 방안 명확히",
+                "토공계획서 - 절토·성토량 산출",
+                "간이개발행위 신속처리 요청 (소규모)",
+                "양평군청 도시건축과 제출",
+                "농지전용허가와 연계하여 동시 검토 요청",
+                "담당자와 기술적 사항 사전 협의",
+                "관련 부서(환경, 산림 등) 협의 진행"
+              ],
+              checkpoints: [
+                "배치도·단면도 완성",
+                "배수계획 수립 완료",
+                "군청 접수 완료",
+                "관련 부서 협의 완료",
+                "보완 사항 처리"
+              ]
+            },
+            {
+              id: 4,
+              title: "허가서 수령",
+              duration: "—",
+              summary: "농지전용허가 + 개발행위허가 동시 발급",
+              documents: ["농지전용허가서", "개발행위허가서"],
+              details: [
+                "양평군청에서 허가 완료 통보 수령",
+                "농지전용허가서 원본 수령",
+                "개발행위허가서 원본 수령",
+                "허가 조건 확인 (준수사항, 기한 등)",
+                "고객에게 카톡으로 사진 전송",
+                "원본 서류 안전 보관",
+                "허가 조건 이행 일정 수립",
+                "다음 단계 착수 준비"
+              ],
+              checkpoints: [
+                "농지전용허가서 수령",
+                "개발행위허가서 수령",
+                "허가 조건 확인 완료",
+                "고객 통보 완료"
+              ]
+            },
+            {
+              id: 5,
+              title: "측량 의뢰 & 공사 착수",
+              duration: "30~50일",
+              summary: "지적측량 + 성토·정지·배수 공사 진행",
+              documents: ["지적측량 의뢰서", "공사 계약서", "안전관리계획서"],
+              details: [
+                "LX 양평지사 또는 민간 측량업체 선정",
+                "지적측량 의뢰서 제출",
+                "측량 일정 조율 (입회 필요)",
+                "성토·정지 공사 업체 선정 및 계약",
+                "배수 공사 업체 선정",
+                "공사 시작 전 인근 주민 사전 안내",
+                "안전관리계획 수립 및 이행",
+                "공사 진행 중 2~3회 현장 점검",
+                "진행 상황 고객에게 주기적 보고 (사진)",
+                "돌발 상황 발생 시 즉시 대응",
+                "허가 조건 준수 여부 감독"
+              ],
+              checkpoints: [
+                "측량 의뢰 완료",
+                "공사 업체 계약 완료",
+                "공사 착수 완료",
+                "1차 현장 점검 완료",
+                "2차 현장 점검 완료",
+                "공사 완료 확인"
+              ]
+            },
+            {
+              id: 6,
+              title: "준공측량 & 준공검사",
+              duration: "7~14일",
+              summary: "공사 완료 후 최종 검사 및 측량",
+              documents: ["준공측량성과도", "준공검사신청서", "준공검사필증"],
+              details: [
+                "공사 완료 후 준공측량 신청",
+                "LX 측량사 현장 방문 및 측량",
+                "준공측량성과도 수령",
+                "양평군청 도시건축과 준공검사 신청",
+                "준공검사 일정 협의",
+                "준공검사 당일 현장 동행 (행정사가 대리)",
+                "검사 결과 확인 및 보완사항 처리",
+                "준공검사필증 발급",
+                "준공 사진 촬영 (전후 비교용)",
+                "준공 서류 일체 정리"
+              ],
+              checkpoints: [
+                "준공측량 신청 완료",
+                "준공측량성과도 수령",
+                "준공검사 신청 완료",
+                "준공검사 통과",
+                "준공검사필증 수령"
+              ]
+            },
+            {
+              id: 7,
+              title: "지목변경 신청",
+              duration: "7~14일",
+              summary: "논 → 대지로 공식 변경 등기",
+              documents: ["지목변경신청서", "준공측량성과도", "허가서 사본", "준공검사필증"],
+              details: [
+                "지목변경신청서 작성",
+                "준공측량성과도 첨부",
+                "농지전용허가서 사본 첨부",
+                "개발행위허가서 사본 첨부",
+                "준공검사필증 사본 첨부",
+                "LX 양평지사 온라인 접수 (90%)",
+                "접수 확인 및 진행 상황 모니터링",
+                "지목변경 완료 통지 수령",
+                "변경된 토지대장 발급",
+                "변경된 지적도 발급"
+              ],
+              checkpoints: [
+                "신청서 작성 완료",
+                "서류 준비 완료",
+                "LX 접수 완료",
+                "지목변경 완료",
+                "토지대장 변경 확인"
+              ]
+            },
+            {
+              id: 8,
+              title: "농지대장 말소",
+              duration: "3~5일",
+              summary: "농지대장에서 해당 토지 제거",
+              documents: ["농지대장 말소 신청서", "토지대장 (변경 후)"],
+              details: [
+                "지목변경 완료 확인 후 진행",
+                "양평군청 농정과 방문 또는 온라인 신청",
+                "농지대장 말소 신청서 제출",
+                "변경된 토지대장 사본 첨부",
+                "자동 말소 여부 확인 (대부분 자동)",
+                "수동 처리 필요 시 담당자 면담",
+                "말소 완료 확인",
+                "농지대장 확인서 발급 (말소 증명)"
+              ],
+              checkpoints: [
+                "말소 신청 완료",
+                "말소 처리 확인",
+                "확인서 발급 완료"
+              ]
+            },
+            {
+              id: 9,
+              title: "잔금 정산 & 서류 인계",
+              duration: "—",
+              summary: "모든 업무 완료 및 최종 정산",
+              documents: ["등기부등본", "지적도", "토지대장", "모든 허가서 원본", "공사 사진", "최종 보고서"],
+              details: [
+                "모든 서류 원본 수집 및 정리",
+                "등기부등본 최신본 발급",
+                "변경된 지적도 발급",
+                "변경된 토지대장 발급",
+                "농지전용허가서 원본",
+                "개발행위허가서 원본",
+                "준공검사필증 원본",
+                "측량성과도 원본",
+                "공사 전후 사진 정리",
+                "업무 진행 과정 보고서 작성",
+                "서류 바인더 제본",
+                "고객에게 전달 (택배 또는 방문)",
+                "성공보수 잔금 정산",
+                "세금계산서 발행",
+                "사후 관리 안내 (향후 건축 시 주의사항 등)",
+                "고객 만족도 확인"
+              ],
+              checkpoints: [
+                "모든 원본 서류 수령",
+                "최종 보고서 작성",
+                "서류 인계 완료",
+                "잔금 정산 완료",
+                "세금계산서 발행"
+              ]
+            }
+          ];
+
+          const toggleStep = (id) => {
+            setExpandedStep(expandedStep === id ? null : id);
+          };
+
+          const toggleComplete = (id) => {
+            const newCompleted = new Set(completedSteps);
+            if (newCompleted.has(id)) {
+              newCompleted.delete(id);
+            } else {
+              newCompleted.add(id);
+            }
+            setCompletedSteps(newCompleted);
+          };
+
+          const updateNote = (id, value) => {
+            setNotes({...notes, [id]: value});
+          };
+
+          const progress = (completedSteps.size / steps.length) * 100;
+
+          return (
+            <div className="max-w-5xl mx-auto p-6 bg-gray-50 min-h-screen">
+              <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+                <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                  양평 논→대지 변경 업무 관리 시스템
+                </h1>
+                <p className="text-gray-600 mb-4">112평(370㎡) 농지전용 전체 프로세스</p>
+                
+                <div className="mb-4">
+                  <div className="flex justify-between text-sm text-gray-600 mb-2">
+                    <span>진행률</span>
+                    <span>{completedSteps.size} / {steps.length} 단계 완료</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div 
+                      className="bg-blue-600 h-3 rounded-full transition-all duration-500"
+                      style={{width: `${progress}%`}}
+                    ></div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div className="bg-blue-50 p-3 rounded">
+                    <div className="text-2xl font-bold text-blue-600">{steps.length}</div>
+                    <div className="text-sm text-gray-600">총 단계</div>
+                  </div>
+                  <div className="bg-green-50 p-3 rounded">
+                    <div className="text-2xl font-bold text-green-600">{completedSteps.size}</div>
+                    <div className="text-sm text-gray-600">완료</div>
+                  </div>
+                  <div className="bg-orange-50 p-3 rounded">
+                    <div className="text-2xl font-bold text-orange-600">{steps.length - completedSteps.size}</div>
+                    <div className="text-sm text-gray-600">진행중</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {steps.map((step) => {
+                  const isExpanded = expandedStep === step.id;
+                  const isCompleted = completedSteps.has(step.id);
+                  
+                  return (
+                    <div 
+                      key={step.id} 
+                      className={`bg-white rounded-lg shadow-md transition-all ${
+                        isCompleted ? 'border-l-4 border-green-500' : 'border-l-4 border-blue-500'
+                      }`}
+                    >
+                      <div 
+                        className="p-5 cursor-pointer hover:bg-gray-50"
+                        onClick={() => toggleStep(step.id)}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start gap-3 flex-1">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleComplete(step.id);
+                              }}
+                              className="mt-1"
+                            >
+                              {isCompleted ? (
+                                <CheckCircle className="w-6 h-6 text-green-500" />
+                              ) : (
+                                <Circle className="w-6 h-6 text-gray-400" />
+                              )}
+                            </button>
+                            
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <h3 className={`text-lg font-bold ${
+                                  isCompleted ? 'text-gray-500 line-through' : 'text-gray-800'
+                                }`}>
+                                  {step.id}. {step.title}
+                                </h3>
+                                <span className="flex items-center gap-1 text-sm text-orange-600 bg-orange-50 px-3 py-1 rounded-full">
+                                  <Clock className="w-4 h-4" />
+                                  {step.duration}
+                                </span>
+                              </div>
+                              <p className="text-gray-600 text-sm mb-2">{step.summary}</p>
+                              <div className="flex flex-wrap gap-2">
+                                {step.documents.map((doc, idx) => (
+                                  <span key={idx} className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded flex items-center gap-1">
+                                    <FileText className="w-3 h-3" />
+                                    {doc}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {isExpanded ? (
+                            <ChevronUp className="w-6 h-6 text-gray-400" />
+                          ) : (
+                            <ChevronDown className="w-6 h-6 text-gray-400" />
+                          )}
+                        </div>
+                      </div>
+
+                      {isExpanded && (
+                        <div className="border-t border-gray-200 p-5 bg-gray-50">
+                          <div className="grid md:grid-cols-2 gap-6">
+                            <div>
+                              <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                                <AlertCircle className="w-5 h-5 text-blue-600" />
+                                상세 업무 내용
+                              </h4>
+                              <ul className="space-y-2">
+                                {step.details.map((detail, idx) => (
+                                  <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
+                                    <span className="text-blue-500 mt-1">•</span>
+                                    <span>{detail}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+
+                            <div>
+                              <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                                <CheckCircle className="w-5 h-5 text-green-600" />
+                                체크포인트
+                              </h4>
+                              <ul className="space-y-2 mb-4">
+                                {step.checkpoints.map((checkpoint, idx) => (
+                                  <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
+                                    <span className="text-green-500 mt-1">✓</span>
+                                    <span>{checkpoint}</span>
+                                  </li>
+                                ))}
+                              </ul>
+
+                              <div>
+                                <h4 className="font-bold text-gray-800 mb-2">메모</h4>
+                                <textarea
+                                  value={notes[step.id] || ''}
+                                  onChange={(e) => updateNote(step.id, e.target.value)}
+                                  placeholder="특이사항, 담당자 연락처, 일정 등을 기록하세요..."
+                                  className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  rows="4"
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="mt-8 bg-white rounded-lg shadow-lg p-6">
+                <h3 className="font-bold text-gray-800 mb-4">💡 사용 안내</h3>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-500">•</span>
+                    <span>각 단계를 클릭하면 상세 내용을 확인할 수 있습니다</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-500">•</span>
+                    <span>완료된 단계는 체크 버튼을 클릭하여 표시하세요</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-500">•</span>
+                    <span>메모 기능을 활용하여 담당자 정보, 일정, 특이사항을 기록하세요</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-500">•</span>
+                    <span>상단 진행률 바로 전체 업무 진척도를 한눈에 파악할 수 있습니다</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<LandConversionTracker />);
+    </script>
+</body>
+</html>
